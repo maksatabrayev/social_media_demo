@@ -22,31 +22,30 @@ class _AuthSceenState extends State<AuthScreen> {
     }
 
     _form.currentState!.save();
-  try {
-    if (isLogin) {
-      //Loggin In a user
-      final userCrednetials = await firebaseAuth.signInWithEmailAndPassword(email: enteredEmail, password: enteredPassword);
-      print(userCrednetials)
-       ScaffoldMessenger.of(context).showSnackBar(
-         const  SnackBar(
+    try {
+      if (isLogin) {
+        //Loggin In a user
+        final userCrednetials = 
+        await firebaseAuth.signInWithEmailAndPassword(
+            email: enteredEmail, password: enteredPassword);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
             content: Text('You are logged in'),
           ),
         );
-    } else {
-      // SigningUp a user
-     
-        final userCrednetials = await firebaseAuth.createUserWithEmailAndPassword(
-            email: enteredEmail, password: enteredPassword);
-        print(userCrednetials);
-     }
-     } on FirebaseAuthException catch (e) {
-       ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? 'Authentication failed'),
-          ),
-        );
-        print(e.message);
+      } else {
+        // SigningUp a user
+        final userCrednetials =
+            await firebaseAuth.createUserWithEmailAndPassword(
+                email: enteredEmail, password: enteredPassword);
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Authentication failed'),
+        ),
+      );
     }
   }
 

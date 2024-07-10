@@ -28,6 +28,7 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -45,5 +46,14 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo Library usage  </string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>Camera usage  </string>
+
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone usage  </string>
 </dict>
 </plist>
