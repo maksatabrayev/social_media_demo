@@ -1,141 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
+import 'package:social_media_demo/controller/auth_controller.dart';
 
-final firebaseAuth = FirebaseAuth.instance;
-
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _AuthSceenState();
-}
-
-class _AuthSceenState extends State<AuthScreen> {
-  final _form = GlobalKey<FormState>();
-  bool isLogin = false;
-  String enteredEmail = " ";
-  String enteredPassword = " ";
-
-  void submit() async {
-    if (!_form.currentState!.validate()) {
-      return;
-    }
-
-    _form.currentState!.save();
-    try {
-      if (isLogin) {
-        //Loggin In a user
-        final userCrednetials = 
-        await firebaseAuth.signInWithEmailAndPassword(
-            email: enteredEmail, password: enteredPassword);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You are logged in'),
-          ),
-        );
-      } else {
-        // SigningUp a user
-        final userCrednetials =
-            await firebaseAuth.createUserWithEmailAndPassword(
-                email: enteredEmail, password: enteredPassword);
-      }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? 'Authentication failed'),
-        ),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final AuthController controller = Get.put(AuthController());
+
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        body: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  color: Theme.of(context).colorScheme.primary,
-                  margin: const EdgeInsets.all(20),
-                  width: 200,
-                  child: Image.asset("assets/login-icon-3060.png"),
-                ),
-                Card(
-                  margin: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _form,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextFormField(
-                              decoration:
-                                  const InputDecoration(labelText: "Email"),
-                              keyboardType: TextInputType.emailAddress,
-                              autocorrect: false,
-                              textCapitalization: TextCapitalization.none,
-                              validator: (value) {
-                                if (value == null ||
-                                    value.trim().isEmpty ||
-                                    !value.contains('@')) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                              onSaved: (newValue) {
-                                enteredEmail = newValue!;
-                              },
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      // appBar: AppBar(
+      //   title: Text(
+      //     "Auth Screen",
+      //     style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+      //   ),
+      //   backgroundColor: Theme.of(context).colorScheme.primary,
+      // ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                color: Theme.of(context).colorScheme.primary,
+                margin: const EdgeInsets.all(20),
+                width: 200,
+                child: Image.asset("assets/login-icon-3060.png"),
+              ),
+              Card(
+                margin: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: controller.formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            decoration: const InputDecoration(labelText: "Email"),
+                            keyboardType: TextInputType.emailAddress,
+                            autocorrect: false,
+                            textCapitalization: TextCapitalization.none,
+                            validator: (value) {
+                              if (value == null ||
+                                  value.trim().isEmpty ||
+                                  !value.contains('@')) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                            onSaved: (newValue) {
+                              controller.enteredEmail.value = newValue!;
+                            },
+                          ),
+                          TextFormField(
+                            decoration: const InputDecoration(labelText: "Password"),
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.trim().length < 6) {
+                                return "Password must be at least 6 characters long";
+                              }
+                              return null;
+                            },
+                            onSaved: (newValue) {
+                              controller.enteredPassword.value = newValue!;
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: controller.submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                             ),
-                            TextFormField(
-                              decoration:
-                                  const InputDecoration(labelText: "Password"),
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.trim().length < 6) {
-                                  return "Password must be at least 6 characters long";
-                                }
-                                return null;
-                              },
-                              onSaved: (newValue) {
-                                enteredPassword = newValue!;
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: submit,
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer),
-                              child: Text(isLogin ? "Log In" : "Sign Up"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  isLogin = !isLogin;
-                                });
-                              },
-                              child: Text(
-                                isLogin
-                                    ? "Don't have an account? Sign Up"
-                                    : "Already have an accout? Log in",
-                              ),
-                            ),
-                          ],
-                        ),
+                            child: Obx(() => Text(controller.isLogin.value ? "Log In" : "Sign Up")),
+                          ),
+                          TextButton(
+                            onPressed: controller.toggleAuthMode,
+                            child: Obx(() => Text(controller.isLogin.value
+                                ? "Don't have an account? Sign Up"
+                                : "Already have an account? Log in")),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                )
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

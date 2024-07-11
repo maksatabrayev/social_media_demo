@@ -50,7 +50,7 @@ class _NewPostState extends State<NewPost> {
     final eneteredBody = _bodyController.text.trim();
 
     if (enteredTitle.isNotEmpty && eneteredBody.isNotEmpty) {
-      final formatter = DateFormat.yMd();
+      final formatter = DateFormat('yMMMd').add_Hm();
       Post newPost = Post(
         title: enteredTitle,
         body: eneteredBody,
@@ -129,6 +129,8 @@ class _NewPostState extends State<NewPost> {
               TextField(
                 controller: _titleController,
                 maxLength: 50,
+                textInputAction: TextInputAction.newline,
+                maxLines: null, 
                 decoration: const InputDecoration(
                   label: Text("Title"),
                 ),
@@ -139,6 +141,8 @@ class _NewPostState extends State<NewPost> {
               TextField(
                 controller: _bodyController,
                 maxLength: 150,
+                textInputAction: TextInputAction.newline,
+                maxLines: null,
                 decoration: const InputDecoration(
                   label: Text("Body"),
                 ),

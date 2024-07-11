@@ -1,60 +1,29 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:social_media_demo/model/post.dart';
-import 'package:social_media_demo/view/screens/new_post.dart';
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:social_media_demo/view/widgets/posts_list.dart';
+import 'package:social_media_demo/controller/feed_controller.dart';
+import 'package:social_media_demo/view/screens/new_post.dart';
 
-class FeedScreen extends StatefulWidget {
+class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
-  @override
-  State<StatefulWidget> createState() => _FeedScreenState();
-}
-
-class _FeedScreenState extends State<FeedScreen> {
-  List<Post> posts = [];
-
-  void addNewPostToList(Post newPost) {
-    setState(() {
-      posts.add(newPost);
-    });
-  }
-
-  //   Post(
-  //     title: "Me in office",
-  //     body: "It was a hard day",
-  //     date: "09.07.2024",
-  //     image: Image.asset("assets/login-icon-3060.png"),
-  //   ),
-  //   Post(
-  //     title: "A view from my apartment",
-  //     body: "Such a beatiful day!!",
-  //     date: "09.07.2024",
-  //     image: Image.asset("assets/login-icon-3060.png"),
-  //   ),
-  // ];
-
-  void openAddPostOverlay() {
-    // showModalBottomSheet(
-    //   useSafeArea: true,
-    //   isScrollControlled: true,
-    //   context: context,
-    //   builder: (ctxt) =>  NewPost(addNewPostToList: addNewPostToList,),
-    // );
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (ctxt) => NewPost(
-          addNewPostToList: addNewPostToList,
-        ),
-      ),
-    );
+  void openAddPostOverlay(FeedController controller) {
+    Get.to(() => NewPost(addNewPostToList: controller.addNewPostToList));
   }
 
   @override
   Widget build(BuildContext context) {
+    final FeedController controller = Get.put(FeedController());
+    final ScrollController scrollController = ScrollController();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        controller.fetchPosts();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
@@ -75,36 +44,33 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ],
       ),
-      body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('userPosts').snapshots(),
-          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
+      body: Obx(() {
+        if (controller.posts.isEmpty && controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: PostsList(
+                posts: controller.posts,
+                scrollController: scrollController,
+              ),
+            ),
+            if (controller.isLoading.value)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(),
-              );
-            }
-            if (!snapshot.hasData) {
-              return const Center(
-                child: Text('No posts available'),
-              );
-            }
-            posts = snapshot.data!.docs.reversed.map((doc) {
-              return Post(
-                title: doc['title'],
-                body: doc['body'],
-                date: doc['date'],
-                image: doc['imageUrl'] == "NULL"
-                    ? Image.asset("assets/default_image.png")
-                    : Image.network(doc['imageUrl']),
-               authorEmail: doc['authorEmail']
-              );
-            }).toList();
-            return PostsList(posts: posts);
-          }),
+              ),
+          ],
+        );
+      }),
       floatingActionButton: FloatingActionButton(
-        onPressed: openAddPostOverlay,
+        onPressed: () => openAddPostOverlay(controller),
         tooltip: "Add a post",
-       backgroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
         child: const Icon(Icons.add),
       ),
     );
