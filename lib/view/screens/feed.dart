@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:social_media_demo/view/widgets/posts_list.dart';
 import 'package:social_media_demo/controller/feed_controller.dart';
+import 'package:social_media_demo/view/widgets/posts_list.dart';
 import 'package:social_media_demo/view/screens/new_post.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   void openAddPostOverlay(FeedController controller) {
-    Get.to(() => NewPost(addNewPostToList: controller.addNewPostToList));
+    Get.off(() => const NewPost());
   }
 
   @override
@@ -36,6 +36,7 @@ class FeedScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               FirebaseAuth.instance.signOut();
+             // Get.off(() => const AuthScreen());
             },
             icon: Icon(
               Icons.exit_to_app,
@@ -51,20 +52,20 @@ class FeedScreen extends StatelessWidget {
           );
         }
 
-        return Column(
-          children: [
-            Expanded(
-              child: PostsList(
-                posts: controller.posts,
-                scrollController: scrollController,
+        return  Column(
+            children: [
+              Expanded(
+                child: PostsList(
+                  posts: controller.posts,
+                  scrollController: scrollController,
+                ),
               ),
-            ),
-            if (controller.isLoading.value)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-          ],
+              if (controller.isLoading.value)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+            ],
         );
       }),
       floatingActionButton: FloatingActionButton(

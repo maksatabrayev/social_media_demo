@@ -3,14 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:social_media_demo/model/post.dart';
 import 'package:intl/intl.dart';
+import 'package:social_media_demo/view/screens/feed.dart';
+
+import '../../controller/feed_controller.dart';
 
 class NewPost extends StatefulWidget {
-  const NewPost({super.key, required this.addNewPostToList});
+  const NewPost({super.key});
 
-  final void Function(Post newPost) addNewPostToList;
 
   @override
   State<StatefulWidget> createState() => _NewPostState();
@@ -50,21 +53,23 @@ class _NewPostState extends State<NewPost> {
     final eneteredBody = _bodyController.text.trim();
 
     if (enteredTitle.isNotEmpty && eneteredBody.isNotEmpty) {
-      final formatter = DateFormat('yMMMd').add_Hm();
+      final formatter = DateFormat('yMMMd').add_Hms().addPattern('.SSS');
       Post newPost = Post(
-        title: enteredTitle,
-        body: eneteredBody,
-        date: formatter.format(DateTime.now()),
-        image: img == null
-            ? Image.asset("assets/default_image.png")
-            : Image.memory(img!),
-        authorEmail: FirebaseAuth.instance.currentUser!.email!
+          title: enteredTitle,
+          body: eneteredBody,
+          date: formatter.format(DateTime.now()),
+          image: img == null
+              ? Image.asset("assets/default_image.png")
+              : Image.memory(img!),
+          authorEmail: FirebaseAuth.instance.currentUser!.email!
       );
-      widget.addNewPostToList(newPost);
       // Saving to Database:
-      savePostToDB(newPost);
-      // Back to main Screen
-      Navigator.of(context).pop();
+      await savePostToDB(newPost);
+
+      await Get.delete<FeedController>();
+      Get.lazyPut(() => FeedController());
+      Get.off(() => FeedScreen());
+
     } else {
       showDialog(
         context: context,
@@ -176,7 +181,8 @@ class _NewPostState extends State<NewPost> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      //Navigator.pop(context);
+                      Get.off(() => FeedScreen());
                     },
                     child: const Text("Cancel"),
                   ),

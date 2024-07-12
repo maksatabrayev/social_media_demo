@@ -38,7 +38,7 @@ class FeedController extends GetxController {
         return Post(
           title: doc['title'],
           body: doc['body'],
-          date: doc['date'],
+          date: doc['date'].replaceAll(RegExp(r'\.\d{3}'), ''),
           image: doc['imageUrl'] == "NULL"
               ? Image.asset("assets/default_image.png")
               : Image.network(doc['imageUrl']),
@@ -51,8 +51,4 @@ class FeedController extends GetxController {
   }
 
 
-    void addNewPostToList(Post newPost) {
-    posts.add(newPost);
-  }
 }
-
